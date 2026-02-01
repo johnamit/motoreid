@@ -11,6 +11,9 @@ __pycache__/
 # Exception: details about the training videos
 !data/input/clip_details.md
 
+# Exception: keep the assets folder
+!assets
+
 # Ignore Models (YOLO weights are large)
 *.pt
 *.pkl
