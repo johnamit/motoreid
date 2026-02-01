@@ -42,9 +42,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'dinov3'))
 from dinov3.hub.backbones import dinov3_vits16
 
 
-# =============================================================================
-# Configuration
-# =============================================================================
+# Configuration: Team Colors for Visualization
 
 TEAM_COLORS = {
     'aprilia_factory':    (0, 255, 0),      # Green
@@ -63,70 +61,42 @@ TEAM_COLORS = {
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description="MotoGP Team Detection & Re-ID Pipeline",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
-    )
+    parser = argparse.ArgumentParser()
 
     # Input/Output
-    parser.add_argument("--source", type=str, required=True,
-                        help="Path to input video file")
-    parser.add_argument("--output", type=str, default="data/output/annotated_races/final_race.mp4",
-                        help="Path to save annotated video")
-    parser.add_argument("--log", type=str, default="data/output/annotated_races/logs/pipeline.log",
-                        help="Path to save log file")
+    parser.add_argument("--source", type=str, required=True, help="Path to input video file")
+    parser.add_argument("--output", type=str, default="data/output/annotated_races/final_race.mp4", help="Path to save annotated video")
+    parser.add_argument("--log", type=str, default="data/output/annotated_races/logs/pipeline.log", help="Path to save log file")
 
     # Model Paths
-    parser.add_argument("--yolo_weights", type=str, default="yolov8m.pt",
-                        help="YOLOv8 weights")
-    parser.add_argument("--classifier_path", type=str,
-                        default="runs/classifier/dinov3_identity_model.pkl",
-                        help="Path to trained team classifier")
-    parser.add_argument("--dino_weights", type=str,
-                        default="models/DINO/dinov3_vits16_pretrain_lvd1689m.pth",
-                        help="Path to DINOv3 backbone weights")
+    parser.add_argument("--yolo_weights", type=str, default="yolov8m.pt", help="YOLOv8 weights")
+    parser.add_argument("--classifier_path", type=str, default="runs/classifier/dinov3_identity_model.pkl", help="Path to trained team classifier")
+    parser.add_argument("--dino_weights", type=str, default="models/DINO/dinov3_vits16_pretrain_lvd1689m.pth", help="Path to DINOv3 backbone weights")
 
     # Detection
-    parser.add_argument("--conf_thresh", type=float, default=0.25,
-                        help="YOLO confidence threshold")
-    parser.add_argument("--target_class", type=int, default=3,
-                        help="COCO class ID (3 = motorcycle)")
-    parser.add_argument("--min_box_size", type=int, default=20,
-                        help="Minimum bounding box dimension")
-
+    parser.add_argument("--conf_thresh", type=float, default=0.25, help="YOLO confidence threshold")
+    parser.add_argument("--target_class", type=int, default=3, help="COCO class ID (3 = motorcycle)")
+    parser.add_argument("--min_box_size", type=int, default=20, help="Minimum bounding box dimension")
     # Feature Extraction
-    parser.add_argument("--img_size", type=int, default=224,
-                        help="DINOv3 input size")
-    parser.add_argument("--embedding_ema", type=float, default=0.9,
-                        help="EMA weight for embedding smoothing (higher = more history)")
+    parser.add_argument("--img_size", type=int, default=224, help="DINOv3 input size")
+    parser.add_argument("--embedding_ema", type=float, default=0.9, help="EMA weight for embedding smoothing (higher = more history)")
 
     # Tracking & Re-ID
-    parser.add_argument("--buffer_size", type=int, default=30,
-                        help="Frames for voting history")
-    parser.add_argument("--lock_threshold", type=float, default=0.85,
-                        help="Agreement ratio to lock label")
-    parser.add_argument("--reid_visual_thresh", type=float, default=0.80,
-                        help="Cosine similarity threshold for Re-ID")
-    parser.add_argument("--reid_spatial_thresh", type=float, default=300,
-                        help="Max pixel distance for spatial Re-ID constraint")
-    parser.add_argument("--lost_timeout", type=int, default=5,
-                        help="Frames before marking track as lost")
-    parser.add_argument("--forgotten_timeout", type=int, default=300,
-                        help="Frames before forgetting lost track")
-    parser.add_argument("--trajectory_length", type=int, default=50,
-                        help="Number of positions to keep for trajectory")
+    parser.add_argument("--buffer_size", type=int, default=30, help="Frames for voting history")
+    parser.add_argument("--lock_threshold", type=float, default=0.85, help="Agreement ratio to lock label")
+    parser.add_argument("--reid_visual_thresh", type=float, default=0.80, help="Cosine similarity threshold for Re-ID")
+    parser.add_argument("--reid_spatial_thresh", type=float, default=300, help="Max pixel distance for spatial Re-ID constraint")
+    parser.add_argument("--lost_timeout", type=int, default=5, help="Frames before marking track as lost")
+    parser.add_argument("--forgotten_timeout", type=int, default=300, help="Frames before forgetting lost track")
+    parser.add_argument("--trajectory_length", type=int, default=50, help="Number of positions to keep for trajectory")
 
     # Visualization
-    parser.add_argument("--draw_trajectory", action="store_true",
-                        help="Draw position history trail")
-    parser.add_argument("--draw_reid_events", action="store_true",
-                        help="Flash Re-ID match events on screen")
-    parser.add_argument("--reid_flash_frames", type=int, default=30,
-                        help="Frames to display Re-ID event")
+    parser.add_argument("--draw_trajectory", action="store_true", help="Draw position history trail")
+    parser.add_argument("--draw_reid_events", action="store_true", help="Flash Re-ID match events on screen")
+    parser.add_argument("--reid_flash_frames", type=int, default=30, help="Frames to display Re-ID event")
 
     # Performance
-    parser.add_argument("--stride", type=int, default=1,
-                        help="Process every Nth frame")
+    parser.add_argument("--stride", type=int, default=1, help="Process every Nth frame")
 
     return parser.parse_args()
 
@@ -154,10 +124,7 @@ def make_transform(img_size=224):
     ])
 
 
-# =============================================================================
 # Track State Management (The "Memory" of each bike)
-# =============================================================================
-
 @dataclass
 class ReIDEvent:
     """Records a Re-ID match for visualization."""
@@ -165,7 +132,6 @@ class ReIDEvent:
     new_id: int
     similarity: float
     frames_remaining: int
-
 
 class TrackState:
     """
@@ -204,17 +170,7 @@ class TrackState:
 
     def update(self, label: str, embedding: np.ndarray, 
                position: Tuple[int, int]) -> str:
-        """
-        Update track with new observation.
-        
-        Args:
-            label: Predicted team label
-            embedding: Raw DINO feature vector
-            position: (x, y) center of bounding box
-            
-        Returns:
-            Final label (locked or voted)
-        """
+        """Update track with new observation."""
         self.frames_since_seen = 0
         self.total_frames_tracked += 1
         self.is_active = True
@@ -315,17 +271,7 @@ class ReIDManager:
 
     def get_or_create_track(self, track_id: int, embedding: np.ndarray,
                             position: Tuple[int, int]) -> Tuple[TrackState, Optional[ReIDEvent]]:
-        """
-        Get existing track or create new one with Re-ID matching.
-        
-        Args:
-            track_id: ByteTrack assigned ID
-            embedding: DINO feature vector
-            position: (x, y) center position
-            
-        Returns:
-            Tuple of (TrackState, ReIDEvent or None)
-        """
+        """Get existing track or create new one with Re-ID matching"""
         reid_event = None
         
         # Case 1: Known active track
@@ -366,8 +312,7 @@ class ReIDManager:
                     best_visual_score = visual_sim
                     best_match = ghost
         
-        if best_match:
-            # Resurrection! Link new ID to old track's state
+        if best_match: # Found a Re-ID match
             self.total_reid_matches += 1
             
             logging.info(f"🔄 Re-ID Match: Track {track_id} ← Ghost {best_match.id} "
@@ -419,8 +364,7 @@ class ReIDManager:
         
         return new_track, None
 
-    def enforce_team_constraint(self, detections: List[dict], 
-                                max_per_team: int = 2) -> List[dict]:
+    def enforce_team_constraint(self, detections: List[dict], max_per_team: int = 2) -> List[dict]:
         """Ensure no team has more than max_per_team bikes."""
         team_counts = Counter(
             d['label'] for d in detections if d['label'] != 'unknown'
@@ -433,10 +377,8 @@ class ReIDManager:
                 team_dets.sort(key=lambda x: (x['locked'], x['conf']), reverse=True)
                 
                 for loser in team_dets[max_per_team:]:
-                    logging.debug(f"⚠️ Team constraint: Track {loser['track_id']} "
-                                 f"({team}) → unknown")
+                    logging.debug(f"Team constraint: Track {loser['track_id']} ({team}) → unknown")
                     loser['label'] = 'unknown'
-        
         return detections
 
     def cleanup(self, seen_track_ids: set):
@@ -450,7 +392,7 @@ class ReIDManager:
                 track.is_active = False
                 
                 if track.frames_since_seen > self.lost_timeout:
-                    logging.debug(f"📤 Track {track_id} → Memory Bank")
+                    logging.debug(f"Track {track_id} → Memory Bank")
                     self.memory_bank.append(track)
                     del self.active_tracks[track_id]
         
@@ -478,11 +420,7 @@ class ReIDManager:
             'memory_bank_size': len(self.memory_bank),
         }
 
-
-# =============================================================================
 # Pipeline Class
-# =============================================================================
-
 class MotoGPPipeline:
     """
     End-to-end pipeline for detecting, tracking, and identifying MotoGP bikes
@@ -573,8 +511,7 @@ class MotoGPPipeline:
             cv2.line(frame, pt1, pt2, color, thickness)
 
     def draw_reid_event(self, frame: np.ndarray, event: ReIDEvent):
-        """Draw Re-ID match notification."""
-        # Flash green banner at top
+        """Draw Re-ID match notification."""    
         text = f"RE-ID MATCH: Track {event.old_id} -> {event.new_id} ({event.similarity:.0%})"
         
         # Calculate alpha for fade-out
@@ -586,11 +523,9 @@ class MotoGPPipeline:
         cv2.addWeighted(overlay, alpha * 0.7, frame, 1 - alpha * 0.7, 0, frame)
         
         # Draw text
-        cv2.putText(frame, text, (20, 38), cv2.FONT_HERSHEY_SIMPLEX, 
-                   0.7, (255, 255, 255), 2)
+        cv2.putText(frame, text, (20, 38), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
-    def draw_detection(self, frame: np.ndarray, detection: dict, 
-                       track: TrackState):
+    def draw_detection(self, frame: np.ndarray, detection: dict, track: TrackState):
         """Draw bounding box, label, and optional trajectory."""
         x1, y1, x2, y2 = detection['box']
         label = detection['label']
@@ -682,9 +617,7 @@ class MotoGPPipeline:
             center = ((x1 + x2) // 2, (y1 + y2) // 2)
 
             # Get or create track (with Re-ID matching)
-            track, reid_event = self.manager.get_or_create_track(
-                track_id, features, center
-            )
+            track, reid_event = self.manager.get_or_create_track(track_id, features, center)
             seen_ids.add(track_id)
             tracks_for_drawing[track_id] = track
 
@@ -731,7 +664,7 @@ class MotoGPPipeline:
         """Run the full pipeline on input video."""
         cap = cv2.VideoCapture(self.args.source)
         if not cap.isOpened():
-            logging.error(f"❌ Failed to open video: {self.args.source}")
+            logging.error(f"Failed to open video: {self.args.source}")
             return
 
         # Video properties
@@ -740,17 +673,17 @@ class MotoGPPipeline:
         fps = cap.get(cv2.CAP_PROP_FPS)
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-        logging.info(f"📹 Input: {self.args.source}")
-        logging.info(f"   Resolution: {width}x{height} @ {fps:.1f}fps")
-        logging.info(f"   Frames: {total_frames}")
+        logging.info(f"Input: {self.args.source}")
+        logging.info(f"- Resolution: {width}x{height} @ {fps:.1f}fps")
+        logging.info(f"- Frames: {total_frames}")
 
         # Setup output
         os.makedirs(os.path.dirname(self.args.output), exist_ok=True)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(self.args.output, fourcc, fps, (width, height))
 
-        logging.info(f"📼 Output: {self.args.output}")
-        logging.info(f"🎬 Processing (stride={self.args.stride})...")
+        logging.info(f"Output: {self.args.output}")
+        logging.info(f"Processing (stride={self.args.stride})...")
 
         frame_idx = 0
         processed_count = 0
@@ -775,13 +708,13 @@ class MotoGPPipeline:
         # Log final metrics
         metrics = self.manager.get_metrics()
         logging.info("=" * 60)
-        logging.info("📊 Re-ID Metrics:")
-        logging.info(f"   Total Re-ID Matches: {metrics['total_reid_matches']}")
-        logging.info(f"   Total New Tracks: {metrics['total_new_tracks']}")
-        logging.info(f"   ID Switches Prevented: {metrics['potential_id_switches_prevented']}")
+        logging.info("Re-ID Metrics:")
+        logging.info(f"- Total Re-ID Matches: {metrics['total_reid_matches']}")
+        logging.info(f"- Total New Tracks: {metrics['total_new_tracks']}")
+        logging.info(f"- ID Switches Prevented: {metrics['potential_id_switches_prevented']}")
         logging.info("=" * 60)
-        logging.info(f"✅ Complete! Processed {processed_count}/{total_frames} frames")
-        logging.info(f"✅ Output: {self.args.output}")
+        logging.info(f"Complete: Processed {processed_count}/{total_frames} frames")
+        logging.info(f"Output: {self.args.output}")
 
 
 # =============================================================================
