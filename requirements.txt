@@ -56,4 +56,6 @@ tzdata==2025.3
 ultralytics==8.3.253
 ultralytics-thop==2.0.18
 urllib3==2.6.3
+python-dotenv==1.1.0
+roboflow==1.1.56
 yt-dlp==2025.12.8

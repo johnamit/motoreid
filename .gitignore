@@ -1,43 +1,28 @@
-# Ignore virtual environment
+# Python / local dev
 venv/
 __pycache__/
-
-# Ignore Data files (too large for GitHub)
-*.mp4
-*.avi
-*.jpg
-*.png
-
-# Exception: details about the training videos
-!data/input/clip_details.md
-
-# Exception: keep the assets folder
-!assets/*
-
-# Ignore Models (YOLO weights are large)
-*.pt
-*.pkl
-*.h5
-*.pth
-
-# Ignore IDE settings
+.env
 .vscode/
 .idea/
 .DS_Store
 
-# Ignore logs and temporary files
-logs/
-*.log
+# Runtime temp files
 temp/
+logs/
 *.tmp
 
-# Ignore the secret keys
-.env
-
-# Ignore runs and roboflow folders
-runs/
+# External / generated folders
+archive/
 motogp-team-detection-5/
-
-# Ignore developer notes
+dinov3/
 dev_notes/
-dinov3
+
+# Folder-level ownership
+data/*
+models/*
+results/*
+
+# Keep empty repo skeleton
+!data/.gitkeep
+!models/.gitkeep
+!results/.gitkeep
