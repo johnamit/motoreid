@@ -15,7 +15,7 @@ logs/
 archive/
 motogp-team-detection-5/
 dinov3/
-dev_notes/
+devnotes/
 
 # Folder-level ownership
 data/*
