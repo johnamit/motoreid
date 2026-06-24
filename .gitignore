@@ -21,6 +21,7 @@ dev_notes/
 data/*
 models/*
 results/*
+hf_upload/*
 
 # Keep empty repo skeleton
 !data/.gitkeep

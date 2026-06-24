@@ -3,7 +3,7 @@
 &nbsp;&nbsp;&nbsp;
 [<img src="https://img.shields.io/badge/Roboflow-Annotation-black?style=for-the-badge&logo=roboflow&logoColor=FFFFFF&labelColor=4B2CFF" alt="View Model on Roboflow"/>](https://app.roboflow.com/amitjohnworkspace/motogp-team-detection/models)
 &nbsp;&nbsp;&nbsp;
-[<img src="https://img.shields.io/badge/Google_Drive-Demo%20Videos-black?style=for-the-badge&logo=google%20drive&logoColor=white&labelColor=4285F4" alt="View Demo Videos on Drive"/>](https://drive.google.com/drive/folders/PLACEHOLDER_DEMO_VIDEOS)
+[<img src="https://img.shields.io/badge/Google_Drive-Project%20Folders-black?style=for-the-badge&logo=google%20drive&logoColor=white&labelColor=4285F4" alt="View Demo Videos on Drive"/>](https://drive.google.com/drive/folders/1ASCyKSsBfq5AT9ho-gWyK242YDRmDMpX?usp=sharing)
 
 
 MotoReID is a computer vision pipeline for MotoGP bike team detection, tracking, and re-identification from race footage. It uses YOLOv8 for detection, official Ultralytics BoT-SORT + ReID for tracking, and DINOv3 embeddings with a lightweight classifier for team identity. It targets key high-speed sports CV challenges: stable team recognition through heavy occlusions, rapid camera cuts, and motion blur.
